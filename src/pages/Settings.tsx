@@ -37,21 +37,22 @@ const Settings = () => {
     {
       title: "Account",
       items: [
-        { icon: User, label: "Profile", description: "Edit your information" },
-        { icon: Bell, label: "Notifications", description: "Manage alerts & sounds" },
+        { icon: User, label: "Profile", description: "Edit your information", path: null },
+        { icon: Bell, label: "Notifications", description: "Manage alerts & sounds", path: null },
       ]
     },
     {
       title: "Safety",
       items: [
-        { icon: Shield, label: "Emergency Contacts", description: "Add trusted contacts" },
-        { icon: MapPin, label: "Location Settings", description: "Control sharing preferences" },
+        { icon: Shield, label: "Device Security", description: "Anti-theft & data backup", path: "/device-security" },
+        { icon: Shield, label: "Emergency Contacts", description: "Add trusted contacts", path: null },
+        { icon: MapPin, label: "Location Settings", description: "Control sharing preferences", path: null },
       ]
     },
     {
       title: "Support",
       items: [
-        { icon: HelpCircle, label: "Help & Support", description: "Get help or report issues" },
+        { icon: HelpCircle, label: "Help & Support", description: "Get help or report issues", path: null },
       ]
     }
   ];
@@ -92,7 +93,13 @@ const Settings = () => {
                 {group.items.map((item, itemIndex) => (
                   <button
                     key={itemIndex}
-                    onClick={() => toast({ title: item.label, description: "Feature coming soon" })}
+                    onClick={() => {
+                      if (item.path) {
+                        navigate(item.path);
+                      } else {
+                        toast({ title: item.label, description: "Feature coming soon" });
+                      }
+                    }}
                     className="w-full p-4 bg-card rounded-xl border border-border hover:border-accent transition-colors"
                   >
                     <div className="flex items-center justify-between">

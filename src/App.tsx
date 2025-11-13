@@ -12,6 +12,7 @@ import ParentDashboard from "./pages/ParentDashboard";
 import ChildControls from "./pages/ChildControls";
 import SafeZones from "./pages/SafeZones";
 import Settings from "./pages/Settings";
+import DeviceSecurity from "./pages/DeviceSecurity";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/child-controls" element={<ProtectedRoute><ChildControls /></ProtectedRoute>} />
           <Route path="/safe-zones" element={<ProtectedRoute><SafeZones /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/device-security" element={<ProtectedRoute><DeviceSecurity /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

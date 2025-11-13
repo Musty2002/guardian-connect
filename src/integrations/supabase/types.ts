@@ -50,6 +50,33 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_logs: {
+        Row: {
+          backup_type: string
+          created_at: string | null
+          file_size: number | null
+          id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          backup_type: string
+          created_at?: string | null
+          file_size?: number | null
+          id?: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          backup_type?: string
+          created_at?: string | null
+          file_size?: number | null
+          id?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       blocked_apps: {
         Row: {
           app_name: string
@@ -116,6 +143,69 @@ export type Database = {
           severity?: string | null
           user_id?: string | null
           verified?: boolean | null
+        }
+        Relationships: []
+      }
+      device_security_events: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          photo_url: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          photo_url?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          photo_url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      device_tracking: {
+        Row: {
+          accuracy: number | null
+          battery_level: number | null
+          created_at: string | null
+          device_status: string | null
+          id: string
+          latitude: number
+          longitude: number
+          network_info: Json | null
+          user_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          battery_level?: number | null
+          created_at?: string | null
+          device_status?: string | null
+          id?: string
+          latitude: number
+          longitude: number
+          network_info?: Json | null
+          user_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          battery_level?: number | null
+          created_at?: string | null
+          device_status?: string | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          network_info?: Json | null
+          user_id?: string
         }
         Relationships: []
       }
