@@ -1,1 +1,13 @@
 project_id = "ssdomhdzvuqknrjnttlt"
+
+[functions.check-geofence]
+verify_jwt = false
+
+[functions.check-parental-controls]
+verify_jwt = false
+
+[functions.export-user-data]
+verify_jwt = true
+
+[functions.detect-threats]
+verify_jwt = true
