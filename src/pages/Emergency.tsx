@@ -3,6 +3,8 @@ import { MobileHeader } from "@/components/MobileHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { EmergencyButton } from "@/components/EmergencyButton";
 import { EmergencyConfirmDialog } from "@/components/EmergencyConfirmDialog";
+import { MeshNetworkStatus } from "@/components/MeshNetworkStatus";
+import { ThreatDetectionCard } from "@/components/ThreatDetectionCard";
 import { Phone, MessageSquare, Camera, Mic } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -76,9 +78,23 @@ const Emergency = () => {
 
             if (error) throw error;
 
+            // Broadcast via mesh network for offline capability
+            const { meshNetwork } = await import('@/utils/meshNetwork');
+            const battery = await getBatteryLevel();
+            
+            meshNetwork.broadcastEmergency({
+              id: `emergency-${Date.now()}`,
+              userId: user.id,
+              type: 'emergency',
+              location: { latitude, longitude },
+              timestamp: Date.now(),
+              message: 'Emergency alert activated - immediate assistance needed',
+              batteryLevel: battery
+            });
+
             toast({
               title: "Emergency Mode Active",
-              description: "Broadcasting to nearby users and family members...",
+              description: "Alert sent via internet and mesh network",
               variant: "destructive",
             });
           },
@@ -109,6 +125,18 @@ const Emergency = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const getBatteryLevel = async (): Promise<number | undefined> => {
+    if ('getBattery' in navigator) {
+      try {
+        const battery = await (navigator as any).getBattery();
+        return Math.round(battery.level * 100);
+      } catch {
+        return undefined;
+      }
+    }
+    return undefined;
   };
 
   const handleDeactivate = async () => {
@@ -179,6 +207,16 @@ const Emergency = () => {
             </div>
           </div>
         )}
+
+        {/* Mesh Network Status */}
+        <div className="mb-6">
+          <MeshNetworkStatus />
+        </div>
+
+        {/* AI Threat Detection */}
+        <div className="mb-6">
+          <ThreatDetectionCard autoAnalyze />
+        </div>
 
         {/* Emergency Button */}
         <div className="flex flex-col items-center justify-center mb-12">
