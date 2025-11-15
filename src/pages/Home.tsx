@@ -35,23 +35,23 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-background to-background-secondary pb-24">
       <MobileHeader
         title="SafeGuard Nigeria"
         onMenuClick={handleMenuClick}
         onNotificationsClick={handleNotificationsClick}
       />
       
-      <main className="max-w-screen-sm mx-auto px-4 py-6">
-        {/* User Status Section */}
-        <div className="mb-8 p-4 bg-card rounded-2xl border border-border">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center">
-              <Shield className="w-6 h-6 text-accent-foreground" />
+      <main className="max-w-screen-sm mx-auto px-4 py-6 space-y-6">
+        {/* Hero Status Section */}
+        <div className="p-6 bg-gradient-to-br from-card to-card/50 rounded-3xl border-2 border-border/50 shadow-lg backdrop-blur-sm">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent to-accent/80 flex items-center justify-center shadow-glow">
+              <Shield className="w-7 h-7 text-accent-foreground" strokeWidth={2.5} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-foreground">Welcome back</h2>
-              <p className="text-sm text-muted-foreground">You're in a safe area</p>
+              <h2 className="text-xl font-bold text-foreground">Welcome back</h2>
+              <p className="text-sm text-muted-foreground font-medium">You're in a safe area</p>
             </div>
           </div>
           
@@ -85,40 +85,32 @@ const Home = () => {
         </div>
 
         {/* Emergency Button */}
-        <div className="flex flex-col items-center justify-center my-12">
+        <div className="flex flex-col items-center justify-center my-8">
           <EmergencyButton onEmergencyActivate={handleEmergencyActivate} />
         </div>
 
         {/* Quick Actions */}
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3">Quick Actions</h3>
-          <button className="w-full p-4 bg-card rounded-xl border border-border text-left hover:border-accent transition-colors">
+          <h3 className="text-sm font-bold text-foreground/70 mb-4 uppercase tracking-wider">Quick Actions</h3>
+          <button className="w-full p-5 bg-card rounded-2xl border-2 border-border/50 text-left hover:border-primary hover:shadow-md transition-all duration-200 active:scale-[0.98] backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-semibold text-foreground">View Danger Zones</p>
+                <p className="font-bold text-foreground text-base mb-1">View Danger Zones</p>
                 <p className="text-sm text-muted-foreground">See unsafe areas near you</p>
               </div>
-              <MapPin className="w-5 h-5 text-warning" />
+              <MapPin className="w-6 h-6 text-warning" strokeWidth={2.5} />
             </div>
           </button>
           
-          <button className="w-full p-4 bg-card rounded-xl border border-border text-left hover:border-accent transition-colors">
+          <button className="w-full p-5 bg-card rounded-2xl border-2 border-border/50 text-left hover:border-primary hover:shadow-md transition-all duration-200 active:scale-[0.98] backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-semibold text-foreground">Share Location</p>
+                <p className="font-bold text-foreground text-base mb-1">Share Location</p>
                 <p className="text-sm text-muted-foreground">Let family know where you are</p>
               </div>
-              <Users className="w-5 h-5 text-accent" />
+              <Users className="w-6 h-6 text-accent" strokeWidth={2.5} />
             </div>
           </button>
-        </div>
-
-        {/* Safety Tips */}
-        <div className="mt-8 p-4 bg-accent/10 rounded-xl border border-accent/30">
-          <h3 className="font-semibold text-accent mb-2">Safety Tip</h3>
-          <p className="text-sm text-foreground">
-            Always enable location services for faster emergency response. Your location is only shared when you activate emergency mode.
-          </p>
         </div>
       </main>
 
