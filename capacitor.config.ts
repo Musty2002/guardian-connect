@@ -1,0 +1,20 @@
+import type { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'app.lovable.287323531c0546f7b52fd55fd1f81951',
+  appName: 'SafeGuard Nigeria',
+  webDir: 'dist',
+  server: {
+    url: 'https://28732353-1c05-46f7-b52f-d55fd1f81951.lovableproject.com?forceHideBadge=true',
+    cleartext: true
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: '#000000',
+      showSpinner: false
+    }
+  }
+};
+
+export default config;
