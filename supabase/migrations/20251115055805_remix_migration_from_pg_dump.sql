@@ -49,7 +49,8 @@ $$;
 --
 
 CREATE FUNCTION public.update_updated_at_column() RETURNS trigger
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
     AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -74,6 +75,20 @@ CREATE TABLE public.app_usage (
     times_opened integer DEFAULT 0 NOT NULL,
     last_used timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: backup_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.backup_logs (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    backup_type text NOT NULL,
+    status text DEFAULT 'pending'::text,
+    file_size integer,
+    created_at timestamp with time zone DEFAULT now()
 );
 
 
@@ -108,6 +123,37 @@ CREATE TABLE public.danger_zones (
     created_at timestamp with time zone DEFAULT now(),
     verified boolean DEFAULT false,
     CONSTRAINT danger_zones_severity_check CHECK ((severity = ANY (ARRAY['low'::text, 'medium'::text, 'high'::text])))
+);
+
+
+--
+-- Name: device_security_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.device_security_events (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    event_type text NOT NULL,
+    event_data jsonb,
+    photo_url text,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: device_tracking; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.device_tracking (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    latitude double precision NOT NULL,
+    longitude double precision NOT NULL,
+    accuracy double precision,
+    battery_level integer,
+    network_info jsonb,
+    device_status text DEFAULT 'active'::text,
+    created_at timestamp with time zone DEFAULT now()
 );
 
 
@@ -208,7 +254,10 @@ CREATE TABLE public.profiles (
     phone_number text,
     emergency_contact text,
     created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
+    updated_at timestamp with time zone DEFAULT now(),
+    emergency_password text,
+    emergency_gesture_enabled boolean DEFAULT false,
+    power_button_gesture_enabled boolean DEFAULT false
 );
 
 
@@ -261,6 +310,23 @@ CREATE TABLE public.screen_time_sessions (
 
 
 --
+-- Name: threat_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.threat_assessments (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    threat_level text NOT NULL,
+    threats text[] NOT NULL,
+    recommendations text[] NOT NULL,
+    location_data jsonb NOT NULL,
+    alert_contacts boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT threat_assessments_threat_level_check CHECK ((threat_level = ANY (ARRAY['low'::text, 'medium'::text, 'high'::text, 'critical'::text])))
+);
+
+
+--
 -- Name: user_locations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -281,6 +347,14 @@ CREATE TABLE public.user_locations (
 
 ALTER TABLE ONLY public.app_usage
     ADD CONSTRAINT app_usage_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: backup_logs backup_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.backup_logs
+    ADD CONSTRAINT backup_logs_pkey PRIMARY KEY (id);
 
 
 --
@@ -305,6 +379,22 @@ ALTER TABLE ONLY public.blocked_apps
 
 ALTER TABLE ONLY public.danger_zones
     ADD CONSTRAINT danger_zones_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: device_security_events device_security_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.device_security_events
+    ADD CONSTRAINT device_security_events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: device_tracking device_tracking_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.device_tracking
+    ADD CONSTRAINT device_tracking_pkey PRIMARY KEY (id);
 
 
 --
@@ -404,6 +494,14 @@ ALTER TABLE ONLY public.screen_time_sessions
 
 
 --
+-- Name: threat_assessments threat_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.threat_assessments
+    ADD CONSTRAINT threat_assessments_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: user_locations user_locations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -426,10 +524,38 @@ CREATE INDEX idx_app_usage_user_date ON public.app_usage USING btree (user_id, u
 
 
 --
+-- Name: idx_backup_logs_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_backup_logs_user_id ON public.backup_logs USING btree (user_id);
+
+
+--
 -- Name: idx_blocked_apps_child; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_blocked_apps_child ON public.blocked_apps USING btree (child_id, is_blocked);
+
+
+--
+-- Name: idx_device_security_events_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_device_security_events_user_id ON public.device_security_events USING btree (user_id);
+
+
+--
+-- Name: idx_device_tracking_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_device_tracking_created_at ON public.device_tracking USING btree (created_at DESC);
+
+
+--
+-- Name: idx_device_tracking_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_device_tracking_user_id ON public.device_tracking USING btree (user_id);
 
 
 --
@@ -475,6 +601,20 @@ CREATE INDEX idx_screen_time_user_date ON public.screen_time_sessions USING btre
 
 
 --
+-- Name: idx_threat_assessments_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_threat_assessments_created_at ON public.threat_assessments USING btree (created_at DESC);
+
+
+--
+-- Name: idx_threat_assessments_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_threat_assessments_user_id ON public.threat_assessments USING btree (user_id);
+
+
+--
 -- Name: parental_controls update_parental_controls_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -496,11 +636,35 @@ CREATE TRIGGER update_safe_zones_updated_at BEFORE UPDATE ON public.safe_zones F
 
 
 --
+-- Name: backup_logs backup_logs_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.backup_logs
+    ADD CONSTRAINT backup_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+
+--
 -- Name: danger_zones danger_zones_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.danger_zones
     ADD CONSTRAINT danger_zones_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: device_security_events device_security_events_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.device_security_events
+    ADD CONSTRAINT device_security_events_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: device_tracking device_tracking_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.device_tracking
+    ADD CONSTRAINT device_tracking_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 
 --
@@ -568,6 +732,14 @@ ALTER TABLE ONLY public.profiles
 
 
 --
+-- Name: threat_assessments threat_assessments_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.threat_assessments
+    ADD CONSTRAINT threat_assessments_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id);
+
+
+--
 -- Name: user_locations user_locations_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -608,6 +780,15 @@ CREATE POLICY "Children can view their controls" ON public.parental_controls FOR
 --
 
 CREATE POLICY "Children can view their safe zones" ON public.safe_zones FOR SELECT USING ((auth.uid() = child_id));
+
+
+--
+-- Name: device_tracking Family can view member tracking data; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Family can view member tracking data" ON public.device_tracking FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM public.family_connections
+  WHERE (((family_connections.parent_id = auth.uid()) AND (family_connections.child_id = device_tracking.user_id) AND (family_connections.status = 'active'::text)) OR ((family_connections.child_id = auth.uid()) AND (family_connections.parent_id = device_tracking.user_id) AND (family_connections.status = 'active'::text))))));
 
 
 --
@@ -701,10 +882,24 @@ CREATE POLICY "System can insert alerts" ON public.screen_time_alerts FOR INSERT
 
 
 --
+-- Name: threat_assessments System can insert threat assessments; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "System can insert threat assessments" ON public.threat_assessments FOR INSERT WITH CHECK (true);
+
+
+--
 -- Name: emergency_alerts Users can create own alerts; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY "Users can create own alerts" ON public.emergency_alerts FOR INSERT WITH CHECK ((auth.uid() = user_id));
+
+
+--
+-- Name: backup_logs Users can insert own backup logs; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can insert own backup logs" ON public.backup_logs FOR INSERT WITH CHECK ((auth.uid() = user_id));
 
 
 --
@@ -719,6 +914,20 @@ CREATE POLICY "Users can insert own location" ON public.user_locations FOR INSER
 --
 
 CREATE POLICY "Users can insert own profile" ON public.profiles FOR INSERT WITH CHECK ((auth.uid() = id));
+
+
+--
+-- Name: device_security_events Users can insert own security events; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can insert own security events" ON public.device_security_events FOR INSERT WITH CHECK ((auth.uid() = user_id));
+
+
+--
+-- Name: device_tracking Users can insert own tracking data; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can insert own tracking data" ON public.device_tracking FOR INSERT WITH CHECK ((auth.uid() = user_id));
 
 
 --
@@ -747,6 +956,13 @@ CREATE POLICY "Users can insert their own sessions" ON public.screen_time_sessio
 --
 
 CREATE POLICY "Users can update own alerts" ON public.emergency_alerts FOR UPDATE USING ((auth.uid() = user_id));
+
+
+--
+-- Name: device_tracking Users can update own device status; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can update own device status" ON public.device_tracking FOR UPDATE USING ((auth.uid() = user_id));
 
 
 --
@@ -801,10 +1017,31 @@ CREATE POLICY "Users can view nearby alerts" ON public.emergency_alerts FOR SELE
 
 
 --
+-- Name: backup_logs Users can view own backup logs; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view own backup logs" ON public.backup_logs FOR SELECT USING ((auth.uid() = user_id));
+
+
+--
 -- Name: profiles Users can view own profile; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING ((auth.uid() = id));
+
+
+--
+-- Name: device_security_events Users can view own security events; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view own security events" ON public.device_security_events FOR SELECT USING ((auth.uid() = user_id));
+
+
+--
+-- Name: device_tracking Users can view own tracking data; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view own tracking data" ON public.device_tracking FOR SELECT USING ((auth.uid() = user_id));
 
 
 --
@@ -836,10 +1073,23 @@ CREATE POLICY "Users can view their own sessions" ON public.screen_time_sessions
 
 
 --
+-- Name: threat_assessments Users can view their own threat assessments; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view their own threat assessments" ON public.threat_assessments FOR SELECT USING ((auth.uid() = user_id));
+
+
+--
 -- Name: app_usage; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.app_usage ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: backup_logs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.backup_logs ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: blocked_apps; Type: ROW SECURITY; Schema: public; Owner: -
@@ -852,6 +1102,18 @@ ALTER TABLE public.blocked_apps ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.danger_zones ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: device_security_events; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.device_security_events ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: device_tracking; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.device_tracking ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: emergency_alerts; Type: ROW SECURITY; Schema: public; Owner: -
@@ -906,6 +1168,12 @@ ALTER TABLE public.screen_time_alerts ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.screen_time_sessions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: threat_assessments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.threat_assessments ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: user_locations; Type: ROW SECURITY; Schema: public; Owner: -
