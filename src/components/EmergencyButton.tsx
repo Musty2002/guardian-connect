@@ -34,36 +34,50 @@ export const EmergencyButton = ({ onEmergencyActivate }: EmergencyButtonProps) =
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-6">
       <button
         onTouchStart={handlePressStart}
         onTouchEnd={handlePressEnd}
         onMouseDown={handlePressStart}
         onMouseUp={handlePressEnd}
         onMouseLeave={handlePressEnd}
-        className={`relative w-48 h-48 rounded-full transition-all duration-200 ${
+        className={`relative w-52 h-52 rounded-full transition-all duration-300 ${
           isPressed
-            ? "bg-emergency scale-95 shadow-2xl shadow-emergency/50"
-            : "bg-emergency/90 hover:bg-emergency shadow-xl"
+            ? "bg-gradient-to-br from-emergency to-emergency/80 scale-90 shadow-2xl"
+            : "bg-gradient-to-br from-emergency to-emergency/90 hover:scale-105 shadow-xl hover:shadow-2xl"
         }`}
+        style={{
+          boxShadow: isPressed ? '0 0 60px rgba(239, 68, 68, 0.6)' : '0 20px 60px rgba(239, 68, 68, 0.3)'
+        }}
       >
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {isPressed ? (
-            <AlertTriangle className="w-20 h-20 text-emergency-foreground animate-pulse" />
+            <AlertTriangle className="w-24 h-24 text-emergency-foreground animate-pulse" strokeWidth={2.5} />
           ) : (
-            <Shield className="w-20 h-20 text-emergency-foreground" />
+            <Shield className="w-24 h-24 text-emergency-foreground" strokeWidth={2.5} />
           )}
-          <span className="text-emergency-foreground font-bold text-lg mt-2">
+          <span className="text-emergency-foreground font-extrabold text-2xl mt-3 tracking-wider">
             {isPressed ? "HOLD..." : "SOS"}
           </span>
         </div>
         {isPressed && (
-          <div className="absolute inset-0 rounded-full border-4 border-emergency-foreground/30 animate-ping" />
+          <>
+            <div className="absolute inset-0 rounded-full border-4 border-emergency-foreground/20 animate-ping" />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/10 to-transparent" />
+          </>
+        )}
+        {!isPressed && (
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/5 to-transparent" />
         )}
       </button>
-      <p className="text-muted-foreground text-sm text-center max-w-xs">
-        Press and hold for 2 seconds to activate emergency mode
-      </p>
+      <div className="text-center space-y-1 max-w-xs">
+        <p className="text-foreground font-semibold text-base">
+          Emergency SOS
+        </p>
+        <p className="text-muted-foreground text-sm">
+          Press and hold for 2 seconds to activate
+        </p>
+      </div>
     </div>
   );
 };
