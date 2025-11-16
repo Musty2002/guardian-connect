@@ -1,17 +1,20 @@
 import { MobileHeader } from "@/components/MobileHeader";
 import { BottomNav } from "@/components/BottomNav";
-import { User, Bell, Shield, MapPin, HelpCircle, LogOut, ChevronRight } from "lucide-react";
+import { User, Bell, Shield, MapPin, HelpCircle, LogOut, ChevronRight, Smartphone, Battery, Wifi } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNativeDevice } from "@/hooks/useNativeDevice";
+import { Card } from "@/components/ui/card";
 
 const Settings = () => {
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
+  const { deviceInfo, networkStatus, batteryLevel } = useNativeDevice();
 
   useEffect(() => {
     if (user) {
@@ -84,6 +87,49 @@ const Settings = () => {
             </div>
           </div>
         </div>
+
+        {/* Device Information */}
+        {deviceInfo && (
+          <Card className="mb-6 p-4 bg-card rounded-xl border border-border">
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3">Device Information</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="w-4 h-4 text-accent" />
+                  <span className="text-sm text-foreground">Model</span>
+                </div>
+                <span className="text-sm font-medium text-foreground">{deviceInfo.model}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="w-4 h-4 text-accent" />
+                  <span className="text-sm text-foreground">Platform</span>
+                </div>
+                <span className="text-sm font-medium text-foreground">{deviceInfo.platform} {deviceInfo.osVersion}</span>
+              </div>
+              {batteryLevel !== null && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Battery className="w-4 h-4 text-accent" />
+                    <span className="text-sm text-foreground">Battery</span>
+                  </div>
+                  <span className="text-sm font-medium text-foreground">{Math.round(batteryLevel * 100)}%</span>
+                </div>
+              )}
+              {networkStatus && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Wifi className="w-4 h-4 text-accent" />
+                    <span className="text-sm text-foreground">Network</span>
+                  </div>
+                  <span className="text-sm font-medium text-foreground">
+                    {networkStatus.connected ? networkStatus.connectionType : 'Offline'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
 
         {/* Settings Groups */}
         <div className="space-y-6">
