@@ -46,10 +46,12 @@ const Home = () => {
         {/* Hero Status Section */}
         <div className="p-6 bg-gradient-to-br from-card to-card/50 rounded-3xl border-2 border-border/50 shadow-lg backdrop-blur-sm">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent to-accent/80 flex items-center justify-center shadow-glow">
-              <Shield className="w-7 h-7 text-accent-foreground" strokeWidth={2.5} />
-            </div>
-            <div>
+            <img 
+              src="/logo.png" 
+              alt="SafeGuard Nigeria" 
+              className="w-16 h-16 object-contain"
+            />
+            <div className="flex-1">
               <h2 className="text-xl font-bold text-foreground">Welcome back</h2>
               <p className="text-sm text-muted-foreground font-medium">You're in a safe area</p>
             </div>

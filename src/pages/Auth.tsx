@@ -86,12 +86,15 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-background-secondary flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         {/* Logo/Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-glow shadow-glow mb-4">
-            <span className="text-3xl font-bold text-primary-foreground">SG</span>
+        <div className="text-center space-y-3">
+          <div className="flex items-center justify-center mb-2">
+            <img 
+              src="/logo.png" 
+              alt="SafeGuard Nigeria" 
+              className="w-48 h-auto"
+            />
           </div>
-          <h1 className="text-3xl font-bold text-foreground">SafeGuard Nigeria</h1>
-          <p className="text-muted-foreground">Protecting Every Family, Every Child, Every Street</p>
+          <p className="text-muted-foreground font-medium">Protecting Every Family, Every Child, Every Street</p>
         </div>
 
         <Card className="border-2 shadow-xl backdrop-blur-sm">
