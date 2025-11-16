@@ -9,8 +9,12 @@ import { Phone, MessageSquare, Camera, Mic } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useGestureDetection } from "@/hooks/useGestureDetection";
+import { useNativeCamera } from "@/hooks/useNativeCamera";
+import { useNativeHaptics } from "@/hooks/useNativeHaptics";
+import { useNativeGeolocation } from "@/hooks/useNativeGeolocation";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { ImpactStyle, NotificationType } from "@capacitor/haptics";
 
 const Emergency = () => {
   const [isEmergencyActive, setIsEmergencyActive] = useState(false);
@@ -18,8 +22,12 @@ const Emergency = () => {
   const [emergencyPassword, setEmergencyPassword] = useState<string | null>(null);
   const [shakeGestureEnabled, setShakeGestureEnabled] = useState(false);
   const [powerButtonGestureEnabled, setPowerButtonGestureEnabled] = useState(false);
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { takePicture, isCapturing } = useNativeCamera();
+  const { impact, notification } = useNativeHaptics();
+  const { getCurrentPosition } = useNativeGeolocation();
 
   // Load emergency settings
   useEffect(() => {
@@ -50,6 +58,7 @@ const Emergency = () => {
     powerButtonEnabled: powerButtonGestureEnabled,
     onGestureDetected: () => {
       if (!isEmergencyActive) {
+        impact(ImpactStyle.Heavy);
         setShowConfirmDialog(true);
       }
     },
@@ -58,64 +67,52 @@ const Emergency = () => {
   const handleEmergencyActivate = async () => {
     if (!user) return;
 
+    // Trigger haptic feedback
+    await notification(NotificationType.Warning);
     setIsEmergencyActive(true);
 
     try {
-      // Get user's current location
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
+      // Get user's current location using native geolocation
+      const position = await getCurrentPosition();
+      
+      if (position) {
+        const { latitude, longitude } = position.coords;
 
-            // Create emergency alert in database
-            const { error } = await supabase.from("emergency_alerts").insert({
-              user_id: user.id,
-              alert_type: "sos",
-              latitude,
-              longitude,
-              status: "active",
-            });
+        // Create emergency alert in database
+        const { error } = await supabase.from("emergency_alerts").insert({
+          user_id: user.id,
+          alert_type: "sos",
+          latitude,
+          longitude,
+          status: "active",
+        });
 
-            if (error) throw error;
+        if (error) throw error;
 
-            // Broadcast via mesh network for offline capability
-            const { meshNetwork } = await import('@/utils/meshNetwork');
-            const battery = await getBatteryLevel();
-            
-            meshNetwork.broadcastEmergency({
-              id: `emergency-${Date.now()}`,
-              userId: user.id,
-              type: 'emergency',
-              location: { latitude, longitude },
-              timestamp: Date.now(),
-              message: 'Emergency alert activated - immediate assistance needed',
-              batteryLevel: battery
-            });
+        // Broadcast via mesh network for offline capability
+        const { meshNetwork } = await import('@/utils/meshNetwork');
+        const battery = position.coords.altitude || 0; // Using available data
+        
+        meshNetwork.broadcastEmergency({
+          id: `emergency-${Date.now()}`,
+          userId: user.id,
+          type: 'emergency',
+          location: { latitude, longitude },
+          timestamp: Date.now(),
+          message: 'Emergency alert activated - immediate assistance needed',
+          batteryLevel: battery
+        });
 
-            toast({
-              title: "Emergency Mode Active",
-              description: "Alert sent via internet and mesh network",
-              variant: "destructive",
-            });
-          },
-          (error) => {
-            console.error("Location error:", error);
-            toast({
-              title: "Location Error",
-              description: "Could not get your location. Emergency alert created without location.",
-              variant: "destructive",
-            });
+        // Trigger success haptic
+        await notification(NotificationType.Success);
 
-            // Still create alert without location
-            supabase.from("emergency_alerts").insert({
-              user_id: user.id,
-              alert_type: "sos",
-              latitude: 0,
-              longitude: 0,
-              status: "active",
-            });
-          }
-        );
+        toast({
+          title: "Emergency Mode Active",
+          description: "Alert sent via internet and mesh network",
+          variant: "destructive",
+        });
+      } else {
+        throw new Error("Could not get location");
       }
     } catch (error: any) {
       console.error("Emergency activation error:", error);
@@ -123,6 +120,18 @@ const Emergency = () => {
         title: "Error",
         description: "Failed to activate emergency mode",
         variant: "destructive",
+      });
+    }
+  };
+
+  const handleCapturePhoto = async () => {
+    await impact(ImpactStyle.Medium);
+    const photo = await takePicture();
+    if (photo) {
+      setCapturedPhoto(photo);
+      toast({
+        title: "Photo Captured",
+        description: "Emergency photo saved",
       });
     }
   };
@@ -225,10 +234,19 @@ const Emergency = () => {
 
         {/* Emergency Features */}
         <div className="grid grid-cols-2 gap-3 mb-8">
-          <button className="p-4 bg-card rounded-xl border border-border hover:border-accent transition-colors">
+          <button 
+            onClick={handleCapturePhoto}
+            disabled={isCapturing}
+            className="p-4 bg-card rounded-xl border border-border hover:border-accent transition-colors active:scale-95 disabled:opacity-50"
+          >
             <Camera className="w-8 h-8 text-accent mb-2" />
-            <p className="text-sm font-semibold text-foreground">Auto Capture</p>
+            <p className="text-sm font-semibold text-foreground">
+              {isCapturing ? "Capturing..." : "Auto Capture"}
+            </p>
             <p className="text-xs text-muted-foreground">Front & back camera</p>
+            {capturedPhoto && (
+              <p className="text-xs text-success mt-1">✓ Photo saved</p>
+            )}
           </button>
           
           <button className="p-4 bg-card rounded-xl border border-border hover:border-accent transition-colors">
