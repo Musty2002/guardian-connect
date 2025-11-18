@@ -1,10 +1,49 @@
 import { useEffect, useState } from 'react';
 import { PushNotifications, Token, ActionPerformed } from '@capacitor/push-notifications';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { Capacitor } from '@capacitor/core';
 
 export const useNativePushNotifications = () => {
   const [token, setToken] = useState<string | null>(null);
   const [isRegistered, setIsRegistered] = useState(false);
+
+  const saveFCMToken = async (fcmToken: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const deviceType = Capacitor.getPlatform();
+      
+      // Check if token already exists
+      const { data: existing } = await supabase
+        .from('fcm_tokens')
+        .select('id')
+        .eq('token', fcmToken)
+        .single();
+
+      if (!existing) {
+        // Insert new token
+        const { error } = await supabase
+          .from('fcm_tokens')
+          .insert({
+            user_id: user.id,
+            token: fcmToken,
+            device_type: deviceType,
+          });
+
+        if (error) {
+          console.error('Error saving FCM token:', error);
+        } else {
+          console.log('FCM token saved successfully');
+        }
+      } else {
+        console.log('FCM token already exists');
+      }
+    } catch (error) {
+      console.error('Error in saveFCMToken:', error);
+    }
+  };
 
   const initializePushNotifications = async () => {
     try {
@@ -28,6 +67,7 @@ export const useNativePushNotifications = () => {
     PushNotifications.addListener('registration', (token: Token) => {
       console.log('Push registration success, token: ' + token.value);
       setToken(token.value);
+      saveFCMToken(token.value);
     });
 
     // Error listener

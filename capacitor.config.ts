@@ -16,6 +16,9 @@ const config: CapacitorConfig = {
       showSpinner: false,
       androidSplashResourceName: 'splash',
       iosSplashResourceName: 'Splash'
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert']
     }
   }
 };
