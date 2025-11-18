@@ -24,13 +24,13 @@ export const EmergencyConfirmDialog = ({
   savedPassword,
 }: EmergencyConfirmDialogProps) => {
   const [password, setPassword] = useState("");
-  const [timeLeft, setTimeLeft] = useState(150); // 2 minutes 30 seconds
+  const [timeLeft, setTimeLeft] = useState(120); // 2 minutes
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (!open) {
       setPassword("");
-      setTimeLeft(150);
+      setTimeLeft(120);
       setError("");
       return;
     }
