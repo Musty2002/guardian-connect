@@ -58,16 +58,16 @@ const Home = () => {
           </div>
           
           {/* Status Grid */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <StatusCard
               icon={Users}
-              title="Nearby Users"
+              title="Nearby"
               value={nearbyUsers}
               status="safe"
             />
             <StatusCard
               icon={Shield}
-              title="Safety Score"
+              title="Safety"
               value={`${safetyScore}%`}
               status="safe"
             />
@@ -79,16 +79,11 @@ const Home = () => {
             />
             <StatusCard
               icon={Clock}
-              title="Last Update"
-              value="Just now"
+              title="Updated"
+              value="Now"
               status="safe"
             />
           </div>
-        </div>
-
-        {/* Emergency Button */}
-        <div className="flex flex-col items-center justify-center my-8">
-          <EmergencyButton onEmergencyActivate={handleEmergencyActivate} />
         </div>
 
         {/* Quick Actions */}
