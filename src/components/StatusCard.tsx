@@ -30,16 +30,16 @@ export const StatusCard = ({ icon: Icon, title, value, status, onClick }: Status
 
   return (
     <Card
-      className={`p-4 border-2 ${statusColors[status]} cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md`}
+      className={`p-2.5 border ${statusColors[status]} cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm`}
       onClick={onClick}
     >
-      <div className="flex items-start gap-3">
-        <div className={`p-2.5 rounded-xl ${iconColors[status]}`}>
-          <Icon className="w-5 h-5" />
+      <div className="flex items-start gap-2">
+        <div className={`p-1.5 rounded-lg ${iconColors[status]}`}>
+          <Icon className="w-4 h-4" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-muted-foreground text-xs font-medium mb-1 uppercase tracking-wide">{title}</p>
-          <p className={`text-xl font-bold ${textColors[status]} truncate`}>{value}</p>
+          <p className="text-muted-foreground text-[10px] font-medium mb-0.5 uppercase tracking-wide">{title}</p>
+          <p className={`text-base font-bold ${textColors[status]} truncate`}>{value}</p>
         </div>
       </div>
     </Card>
