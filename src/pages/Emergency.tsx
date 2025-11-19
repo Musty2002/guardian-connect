@@ -12,6 +12,8 @@ import { useGestureDetection } from "@/hooks/useGestureDetection";
 import { useNativeCamera } from "@/hooks/useNativeCamera";
 import { useNativeHaptics } from "@/hooks/useNativeHaptics";
 import { useNativeGeolocation } from "@/hooks/useNativeGeolocation";
+import { useNativeLocalNotifications } from "@/hooks/useNativeLocalNotifications";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ImpactStyle, NotificationType } from "@capacitor/haptics";
@@ -28,11 +30,16 @@ const Emergency = () => {
   const { takePicture, isCapturing } = useNativeCamera();
   const { impact, notification } = useNativeHaptics();
   const { getCurrentPosition } = useNativeGeolocation();
+  const { scheduleEmergencyNotification, requestPermissions, permissionGranted } = useNativeLocalNotifications();
+  const { isOnline, connectionType } = useNetworkStatus();
 
-  // Load emergency settings
+  // Load emergency settings and request notification permissions
   useEffect(() => {
     if (user) {
       loadEmergencySettings();
+      if (!permissionGranted) {
+        requestPermissions();
+      }
     }
   }, [user]);
 
@@ -106,9 +113,18 @@ const Emergency = () => {
         // Trigger success haptic
         await notification(NotificationType.Success);
 
+        // Send local notification that works even when app is closed
+        await scheduleEmergencyNotification(
+          "🚨 Emergency Alert Active",
+          `Your emergency alert is broadcasting. Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+          { alertType: 'sos', latitude, longitude }
+        );
+
         toast({
           title: "Emergency Mode Active",
-          description: "Alert sent via internet and mesh network",
+          description: isOnline 
+            ? `Alert sent via ${connectionType} and mesh network` 
+            : "Alert sent via mesh network (offline)",
           variant: "destructive",
         });
       } else {
