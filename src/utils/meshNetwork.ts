@@ -1,6 +1,8 @@
 // Mesh Network Utility for Offline Emergency Broadcasting
 // Uses WebRTC for P2P connections and broadcasts emergency alerts
 
+import { Capacitor } from '@capacitor/core';
+
 interface EmergencyBroadcast {
   id: string;
   userId: string;
@@ -24,7 +26,11 @@ class MeshNetworkManager {
     this.discoveryChannel = new BroadcastChannel('emergency-mesh');
     this.setupDiscoveryListener();
     
-    // Simulate peer connections for demo
+    // Enable demo mode only on web, native uses real Bluetooth
+    const isNative = Capacitor.isNativePlatform();
+    this.demoMode = !isNative;
+    
+    // Simulate peer connections for demo on web only
     if (this.demoMode) {
       this.simulateNetworkActivity();
     }
