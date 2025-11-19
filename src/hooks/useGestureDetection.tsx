@@ -1,4 +1,6 @@
 import { useEffect, useCallback, useState } from "react";
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 interface GestureDetectionOptions {
   shakeEnabled: boolean;
@@ -12,9 +14,18 @@ export const useGestureDetection = ({ shakeEnabled, powerButtonEnabled, onGestur
   const [powerButtonCount, setPowerButtonCount] = useState(0);
   const [lastPowerButtonTime, setLastPowerButtonTime] = useState(0);
 
-  const handleShake = useCallback(() => {
+  const handleShake = useCallback(async () => {
     const now = Date.now();
     const timeDiff = now - lastShakeTime;
+
+    // Provide haptic feedback on native platforms
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await Haptics.impact({ style: ImpactStyle.Medium });
+      } catch (error) {
+        console.error('Haptics error:', error);
+      }
+    }
 
     // Reset if more than 2 seconds between shakes
     if (timeDiff > 2000) {
@@ -30,6 +41,14 @@ export const useGestureDetection = ({ shakeEnabled, powerButtonEnabled, onGestur
     // Trigger emergency if shaken 3 times quickly
     if (newCount >= 3) {
       setShakeCount(0);
+      // Heavy haptic for confirmation
+      if (Capacitor.isNativePlatform()) {
+        try {
+          await Haptics.impact({ style: ImpactStyle.Heavy });
+        } catch (error) {
+          console.error('Haptics error:', error);
+        }
+      }
       onGestureDetected();
     }
   }, [shakeCount, lastShakeTime, onGestureDetected]);
