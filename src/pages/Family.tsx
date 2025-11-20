@@ -113,16 +113,16 @@ const Family = () => {
         onNotificationsClick={() => {}}
       />
       
-      <main className="max-w-screen-sm mx-auto px-4 py-6">
+      <main className="max-w-screen-sm mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Demo Mode Banner */}
         {connections.length > 0 && connections[0]?.isDemo && (
-          <div className="mb-4 p-4 bg-accent/10 rounded-xl border border-accent/30">
-            <div className="flex items-start gap-3">
-              <Users className="w-5 h-5 text-accent mt-0.5" />
-              <div className="flex-1">
+          <div className="mb-4 p-3 sm:p-4 bg-accent/10 rounded-xl border border-accent/30">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <Users className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
                 <p className="font-semibold text-accent text-sm">Demo Mode Active</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  These are sample family members for demonstration. Click "Add Member" to connect real accounts.
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Sample family members shown. Click "Add Member" to connect real accounts.
                 </p>
               </div>
             </div>
@@ -130,21 +130,21 @@ const Family = () => {
         )}
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6">
           <Button 
-            className="bg-accent hover:bg-accent/90"
+            className="bg-accent hover:bg-accent/90 h-auto py-3"
             onClick={() => setConnectionDialogOpen(true)}
           >
-            <Plus className="w-5 h-5 mr-2" />
-            Add Member
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+            <span className="text-sm sm:text-base">Add Member</span>
           </Button>
           <Button 
             variant="outline"
-            className="border-accent text-accent hover:bg-accent/10"
+            className="border-accent text-accent hover:bg-accent/10 h-auto py-3"
             onClick={() => navigate("/parent-dashboard")}
           >
-            <SettingsIcon className="w-5 h-5 mr-2" />
-            Parent Controls
+            <SettingsIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+            <span className="text-sm sm:text-base truncate">Controls</span>
           </Button>
         </div>
 
@@ -161,32 +161,32 @@ const Family = () => {
               const isDemo = connection.isDemo;
               
               return (
-                <div key={connection.id} className="p-4 bg-card rounded-xl border border-border">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center">
-                        <Users className="w-6 h-6 text-accent-foreground" />
+                <div key={connection.id} className="p-3 sm:p-4 bg-card rounded-xl border border-border">
+                  <div className="flex items-start justify-between mb-3 gap-2">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+                        <Users className="w-5 h-5 sm:w-6 sm:h-6 text-accent-foreground" />
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground">{memberName}</h3>
-                        <p className="text-sm text-muted-foreground">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-semibold text-foreground text-sm sm:text-base truncate">{memberName}</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           {isParent ? "Child" : "Parent"} {isDemo && "(Demo)"}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Shield className="w-5 h-5 text-success" />
-                      <span className="text-sm font-semibold text-success">Safe</span>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
+                      <span className="text-xs sm:text-sm font-semibold text-success">Safe</span>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="w-4 h-4" />
+                  <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm mb-3">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                       <span>Location shared</span>
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Clock className="w-4 h-4" />
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                       <span>Active</span>
                     </div>
                   </div>
@@ -194,11 +194,11 @@ const Family = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full mt-3"
+                    className="w-full h-9"
                     onClick={() => navigate("/map")}
                   >
-                    <MapPin className="w-4 h-4 mr-2" />
-                    View on Map
+                    <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="text-sm">View on Map</span>
                   </Button>
                 </div>
               );
@@ -207,12 +207,12 @@ const Family = () => {
         )}
 
         {/* Parental Controls Info */}
-        <div className="mt-6 p-4 bg-accent/10 rounded-xl border border-accent/30">
-          <h3 className="font-semibold text-accent mb-2 flex items-center gap-2">
-            <Shield className="w-5 h-5" />
+        <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-accent/10 rounded-xl border border-accent/30">
+          <h3 className="font-semibold text-accent text-sm sm:text-base mb-2 flex items-center gap-2">
+            <Shield className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
             Parental Controls
           </h3>
-          <ul className="text-sm text-foreground space-y-1">
+          <ul className="text-xs sm:text-sm text-foreground space-y-1 leading-relaxed">
             <li>• Track real-time location</li>
             <li>• Set safe zones with alerts</li>
             <li>• Control screen time & apps</li>
@@ -222,25 +222,25 @@ const Family = () => {
         </div>
 
         {/* Safe Zones */}
-        <div className="mt-6">
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3">Safe Zones</h3>
+        <div className="mt-4 sm:mt-6">
+          <h3 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 sm:mb-3">Safe Zones</h3>
           <div className="space-y-2">
-            <div className="p-3 bg-card rounded-lg border border-success/30">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-foreground text-sm">Home</p>
-                  <p className="text-xs text-muted-foreground">Nassarawa GRA, Kano</p>
+            <div className="p-2.5 sm:p-3 bg-card rounded-lg border border-success/30">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-foreground text-xs sm:text-sm">Home</p>
+                  <p className="text-xs text-muted-foreground truncate">Nassarawa GRA, Kano</p>
                 </div>
-                <div className="w-2 h-2 rounded-full bg-success" />
+                <div className="w-2 h-2 rounded-full bg-success flex-shrink-0" />
               </div>
             </div>
-            <div className="p-3 bg-card rounded-lg border border-success/30">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-foreground text-sm">School</p>
-                  <p className="text-xs text-muted-foreground">Kano State Secondary School</p>
+            <div className="p-2.5 sm:p-3 bg-card rounded-lg border border-success/30">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-foreground text-xs sm:text-sm">School</p>
+                  <p className="text-xs text-muted-foreground truncate">Kano State Secondary School</p>
                 </div>
-                <div className="w-2 h-2 rounded-full bg-success" />
+                <div className="w-2 h-2 rounded-full bg-success flex-shrink-0" />
               </div>
             </div>
           </div>
