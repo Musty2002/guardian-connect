@@ -245,7 +245,7 @@ const Emergency = () => {
 
         {/* Emergency Button */}
         <div className="flex flex-col items-center justify-center mb-12">
-          <EmergencyButton onEmergencyActivate={handleEmergencyActivate} />
+          <EmergencyButton onEmergencyActivate={() => setShowConfirmDialog(true)} />
         </div>
 
         {/* Emergency Features */}
