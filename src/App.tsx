@@ -20,6 +20,8 @@ import DeviceSecurity from "./pages/DeviceSecurity";
 import EmergencySettings from "./pages/EmergencySettings";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
@@ -38,6 +40,8 @@ const AppContent = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/auth" element={<Auth />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
         <Route path="/map" element={<ProtectedRoute><Map /></ProtectedRoute>} />
         <Route path="/emergency" element={<ProtectedRoute><Emergency /></ProtectedRoute>} />

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -177,16 +178,16 @@ const Auth = () => {
                   />
                   <label
                     htmlFor="terms"
-                    className="text-sm leading-relaxed cursor-pointer"
+                    className="text-sm leading-relaxed cursor-pointer select-none"
                   >
                     I agree to the{" "}
-                    <a href="#" className="text-primary hover:underline font-semibold">
+                    <Link to="/terms-of-service" className="text-primary hover:underline font-semibold">
                       Terms of Service
-                    </a>{" "}
+                    </Link>{" "}
                     and{" "}
-                    <a href="#" className="text-primary hover:underline font-semibold">
+                    <Link to="/privacy-policy" className="text-primary hover:underline font-semibold">
                       Privacy Policy
-                    </a>
+                    </Link>
                   </label>
                 </div>
               )}
