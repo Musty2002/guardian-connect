@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
@@ -13,6 +14,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -36,6 +38,16 @@ const Auth = () => {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isLogin && !agreedToTerms) {
+      toast({
+        title: "Agreement Required",
+        description: "Please agree to the Terms of Service and Privacy Policy to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -155,6 +167,29 @@ const Auth = () => {
                   minLength={6}
                 />
               </div>
+              {!isLogin && (
+                <div className="flex items-start space-x-3 pt-2">
+                  <Checkbox 
+                    id="terms" 
+                    checked={agreedToTerms}
+                    onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
+                    className="mt-1"
+                  />
+                  <label
+                    htmlFor="terms"
+                    className="text-sm leading-relaxed cursor-pointer"
+                  >
+                    I agree to the{" "}
+                    <a href="#" className="text-primary hover:underline font-semibold">
+                      Terms of Service
+                    </a>{" "}
+                    and{" "}
+                    <a href="#" className="text-primary hover:underline font-semibold">
+                      Privacy Policy
+                    </a>
+                  </label>
+                </div>
+              )}
               <Button type="submit" className="w-full" size="lg" disabled={loading}>
                 {loading ? "Loading..." : isLogin ? "Sign In" : "Create Account"}
               </Button>
