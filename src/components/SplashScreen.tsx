@@ -9,19 +9,19 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const [stage, setStage] = useState(0);
 
   useEffect(() => {
-    // Stage 0: Logo appears (0-1200ms)
-    const timer1 = setTimeout(() => setStage(1), 1200);
+    // Stage 0: Logo appears (0-2000ms)
+    const timer1 = setTimeout(() => setStage(1), 2000);
     
-    // Stage 1: Text appears (1200-2500ms)
-    const timer2 = setTimeout(() => setStage(2), 2500);
+    // Stage 1: Text appears (2000-4000ms)
+    const timer2 = setTimeout(() => setStage(2), 4000);
     
-    // Stage 2: Progress bar (2500-4500ms)
-    const timer3 = setTimeout(() => setStage(3), 4500);
+    // Stage 2: Progress bar (4000-9000ms)
+    const timer3 = setTimeout(() => setStage(3), 9000);
     
-    // Stage 3: Fade out (4500-5000ms)
+    // Stage 3: Fade out (9000-10000ms)
     const timer4 = setTimeout(() => {
       onComplete();
-    }, 5000);
+    }, 10000);
 
     return () => {
       clearTimeout(timer1);
