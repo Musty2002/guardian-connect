@@ -2,185 +2,255 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Radio, Zap, Users, AlertTriangle } from 'lucide-react';
+import { Radio, Zap, Users, AlertTriangle, Bluetooth, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { EmergencyBroadcast } from '@/utils/meshNetwork';
-
-interface SimulatedPeer {
-  id: string;
-  name: string;
-  distance: number;
-  lastBroadcast?: number;
-}
+import { useNativeMeshNetwork } from '@/hooks/useNativeMeshNetwork';
+import { useAuth } from '@/hooks/useAuth';
+import { Capacitor } from '@capacitor/core';
 
 export const MeshNetworkDemo = () => {
-  const [simulatedPeers, setSimulatedPeers] = useState<SimulatedPeer[]>([]);
   const [broadcastCount, setBroadcastCount] = useState(0);
   const [isSimulating, setIsSimulating] = useState(false);
   const [recentActivity, setRecentActivity] = useState<string[]>([]);
   const { toast } = useToast();
+  const { user } = useAuth();
+  
+  // Use native mesh network for real device discovery
+  const {
+    isInitialized,
+    isScanning,
+    nearbyPeers,
+    receivedBroadcasts,
+    broadcastEmergency,
+    startScanning,
+    isNativeSupported
+  } = useNativeMeshNetwork();
 
-  // Generate simulated peers
+  // Track when new peers are discovered
   useEffect(() => {
-    const peers: SimulatedPeer[] = [
-      { id: '1', name: 'Device-Alpha', distance: 25 },
-      { id: '2', name: 'Device-Beta', distance: 45 },
-      { id: '3', name: 'Device-Gamma', distance: 78 },
-    ];
-    setSimulatedPeers(peers);
-  }, []);
+    if (nearbyPeers.length > 0) {
+      const latestPeer = nearbyPeers[nearbyPeers.length - 1];
+      const timeSinceDiscovery = Date.now() - latestPeer.lastSeen;
+      
+      if (timeSinceDiscovery < 2000) {
+        addActivity(`🔵 Discovered: ${latestPeer.name} (~${Math.round(latestPeer.distance || 0)}m)`);
+      }
+    }
+  }, [nearbyPeers.length]);
+
+  // Track received broadcasts
+  useEffect(() => {
+    if (receivedBroadcasts.length > 0) {
+      const latest = receivedBroadcasts[receivedBroadcasts.length - 1];
+      addActivity(`📥 Received ${latest.type} broadcast from peer`);
+    }
+  }, [receivedBroadcasts.length]);
 
   const addActivity = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setRecentActivity(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 9)]);
   };
 
-  const simulateEmergencyBroadcast = () => {
+  const sendTestBroadcast = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to send broadcasts",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSimulating(true);
     setBroadcastCount(prev => prev + 1);
     
     addActivity('🚨 Emergency broadcast initiated');
 
-    // Simulate propagation through peers
-    simulatedPeers.forEach((peer, index) => {
-      setTimeout(() => {
-        setSimulatedPeers(prev => 
-          prev.map(p => 
-            p.id === peer.id 
-              ? { ...p, lastBroadcast: Date.now() }
-              : p
-          )
-        );
-        addActivity(`📡 Broadcast reached ${peer.name} (~${peer.distance}m)`);
-
-        // Last peer reached
-        if (index === simulatedPeers.length - 1) {
-          setTimeout(() => {
-            setIsSimulating(false);
-            toast({
-              title: "Mesh Broadcast Complete",
-              description: `Emergency alert propagated to ${simulatedPeers.length} nearby devices`,
-              variant: "default",
-            });
-            addActivity('✅ All reachable peers notified');
-          }, 500);
-        }
-      }, (index + 1) * 800);
+    // Send real broadcast via native mesh
+    await broadcastEmergency({
+      id: `test-emergency-${Date.now()}`,
+      userId: user.id,
+      type: 'emergency',
+      location: { latitude: 6.5244, longitude: 3.3792 }, // Lagos coordinates
+      timestamp: Date.now(),
+      message: 'TEST: Emergency alert - This is a hackathon demo',
+      batteryLevel: 85
     });
+
+    // Simulate propagation visualization
+    if (nearbyPeers.length > 0) {
+      nearbyPeers.forEach((peer, index) => {
+        setTimeout(() => {
+          addActivity(`📡 Broadcasting to ${peer.name} (~${Math.round(peer.distance || 0)}m)`);
+
+          if (index === nearbyPeers.length - 1) {
+            setTimeout(() => {
+              setIsSimulating(false);
+              toast({
+                title: "Broadcast Sent",
+                description: `Alert sent to ${nearbyPeers.length} nearby device(s)`,
+              });
+              addActivity(`✅ Broadcast complete - ${nearbyPeers.length} peer(s) reached`);
+            }, 500);
+          }
+        }, (index + 1) * 600);
+      });
+    } else {
+      setTimeout(() => {
+        setIsSimulating(false);
+        addActivity('ℹ️ No peers detected - broadcast stored locally');
+        toast({
+          title: "Broadcast Stored",
+          description: "No nearby devices found. Broadcast saved for when peers connect.",
+        });
+      }, 1000);
+    }
   };
 
-  const simulatePeerJoin = () => {
-    const newPeer: SimulatedPeer = {
-      id: String(Date.now()),
-      name: `Device-${String.fromCharCode(65 + simulatedPeers.length)}`,
-      distance: Math.floor(Math.random() * 80) + 20,
-    };
-    
-    setSimulatedPeers(prev => [...prev, newPeer]);
-    addActivity(`🔵 New peer joined: ${newPeer.name} (~${newPeer.distance}m)`);
+  const handleRescan = async () => {
+    addActivity('🔍 Scanning for nearby devices...');
+    await startScanning();
     
     toast({
-      title: "New Device Discovered",
-      description: `${newPeer.name} joined the mesh network`,
+      title: "Scanning for Devices",
+      description: "Looking for nearby Bluetooth LE devices",
     });
   };
 
-  const simulatePeerLeave = () => {
-    if (simulatedPeers.length === 0) return;
-    
-    const leavingPeer = simulatedPeers[simulatedPeers.length - 1];
-    setSimulatedPeers(prev => prev.slice(0, -1));
-    addActivity(`🔴 Peer left: ${leavingPeer.name}`);
-  };
+  const totalCoverage = nearbyPeers.reduce((sum, p) => sum + (p.distance || 0), 0);
 
   return (
     <Card className="border-2 border-primary/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Radio className={`h-5 w-5 text-primary ${isSimulating ? 'animate-pulse' : ''}`} />
-          Mesh Network Demo
+          {isNativeSupported ? (
+            <Bluetooth className={`h-5 w-5 text-primary ${isScanning ? 'animate-pulse' : ''}`} />
+          ) : (
+            <Radio className="h-5 w-5 text-muted-foreground" />
+          )}
+          {isNativeSupported ? 'Native Mesh Network' : 'Mesh Network (Web Demo)'}
         </CardTitle>
         <CardDescription>
-          Hackathon visualization - Shows how emergency broadcasts propagate through the mesh
+          {isNativeSupported 
+            ? 'Real-time Bluetooth LE device discovery and emergency broadcasting'
+            : 'Native features available only on Android/iOS apps'
+          }
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Status Banner */}
+        {!isNativeSupported && (
+          <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg text-sm">
+            <strong>Web Mode:</strong> Native Bluetooth features require Android/iOS app. 
+            Build with <code className="text-xs bg-muted px-1 rounded">npx cap run android</code>
+          </div>
+        )}
+
+        {isNativeSupported && !isInitialized && (
+          <div className="p-3 bg-muted border rounded-lg text-sm">
+            <strong>Initializing Bluetooth...</strong> Please ensure Bluetooth and Location permissions are granted.
+          </div>
+        )}
+
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           <div className="p-3 bg-muted rounded-lg text-center">
             <Users className="h-4 w-4 mx-auto mb-1 text-primary" />
-            <div className="text-2xl font-bold">{simulatedPeers.length}</div>
-            <div className="text-xs text-muted-foreground">Active Peers</div>
+            <div className="text-2xl font-bold">{nearbyPeers.length}</div>
+            <div className="text-xs text-muted-foreground">
+              {isNativeSupported ? 'BLE Devices' : 'Demo Peers'}
+            </div>
           </div>
           <div className="p-3 bg-muted rounded-lg text-center">
             <Zap className="h-4 w-4 mx-auto mb-1 text-warning" />
             <div className="text-2xl font-bold">{broadcastCount}</div>
-            <div className="text-xs text-muted-foreground">Broadcasts</div>
+            <div className="text-xs text-muted-foreground">Sent</div>
           </div>
           <div className="p-3 bg-muted rounded-lg text-center">
-            <AlertTriangle className="h-4 w-4 mx-auto mb-1 text-emergency" />
-            <div className="text-2xl font-bold">
-              {simulatedPeers.reduce((sum, p) => sum + p.distance, 0)}m
-            </div>
-            <div className="text-xs text-muted-foreground">Coverage</div>
+            <AlertTriangle className="h-4 w-4 mx-auto mb-1 text-success" />
+            <div className="text-2xl font-bold">{receivedBroadcasts.length}</div>
+            <div className="text-xs text-muted-foreground">Received</div>
           </div>
         </div>
 
-        {/* Simulated Peers */}
-        {simulatedPeers.length > 0 && (
+        {/* Discovered Devices */}
+        {nearbyPeers.length > 0 && (
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Connected Devices</h4>
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-medium">Discovered Devices (BLE)</h4>
+              {isScanning && (
+                <Badge variant="outline" className="text-xs animate-pulse">
+                  Scanning...
+                </Badge>
+              )}
+            </div>
             <div className="space-y-2">
-              {simulatedPeers.map((peer) => (
-                <div
-                  key={peer.id}
-                  className={`p-3 rounded-lg border transition-all ${
-                    peer.lastBroadcast && Date.now() - peer.lastBroadcast < 3000
-                      ? 'bg-primary/10 border-primary animate-pulse'
-                      : 'bg-muted border-border'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Radio className="h-4 w-4 text-primary" />
-                      <span className="font-medium text-sm">{peer.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        ~{peer.distance}m
-                      </Badge>
-                      {peer.lastBroadcast && Date.now() - peer.lastBroadcast < 3000 && (
-                        <Badge variant="default" className="text-xs animate-pulse">
-                          Broadcasting
-                        </Badge>
-                      )}
+              {nearbyPeers.map((peer) => {
+                const timeSinceSeen = Date.now() - peer.lastSeen;
+                const isRecent = timeSinceSeen < 5000;
+                
+                return (
+                  <div
+                    key={peer.id}
+                    className={`p-3 rounded-lg border transition-all ${
+                      isRecent
+                        ? 'bg-primary/10 border-primary'
+                        : 'bg-muted border-border'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Bluetooth className={`h-4 w-4 ${isRecent ? 'text-primary' : 'text-muted-foreground'}`} />
+                        <span className="font-medium text-sm">{peer.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {peer.distance !== undefined && (
+                          <Badge variant="outline" className="text-xs">
+                            ~{Math.round(peer.distance)}m
+                          </Badge>
+                        )}
+                        {isRecent && (
+                          <Badge variant="default" className="text-xs">
+                            Active
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+          </div>
+        )}
+
+        {isNativeSupported && nearbyPeers.length === 0 && !isScanning && (
+          <div className="p-4 bg-muted/50 border border-dashed rounded-lg text-center text-sm text-muted-foreground">
+            No nearby devices found. Make sure other devices have the app running and Bluetooth enabled.
           </div>
         )}
 
         {/* Demo Controls */}
         <div className="grid grid-cols-2 gap-2">
           <Button
-            onClick={simulateEmergencyBroadcast}
-            disabled={isSimulating || simulatedPeers.length === 0}
+            onClick={sendTestBroadcast}
+            disabled={isSimulating || (isNativeSupported && !isInitialized)}
             variant="destructive"
             size="sm"
           >
             <AlertTriangle className="h-4 w-4 mr-2" />
-            Test Emergency
+            Test Broadcast
           </Button>
-          <Button
-            onClick={simulatePeerJoin}
-            variant="outline"
-            size="sm"
-          >
-            <Users className="h-4 w-4 mr-2" />
-            Add Peer
-          </Button>
+          {isNativeSupported && (
+            <Button
+              onClick={handleRescan}
+              disabled={isScanning}
+              variant="outline"
+              size="sm"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isScanning ? 'animate-spin' : ''}`} />
+              Scan Devices
+            </Button>
+          )}
         </div>
 
         {/* Activity Log */}
@@ -208,8 +278,17 @@ export const MeshNetworkDemo = () => {
         )}
 
         <div className="text-xs text-muted-foreground bg-primary/5 p-3 rounded-lg border border-primary/20">
-          <strong>Demo Mode:</strong> This visualization shows how mesh broadcasts would propagate in production. 
-          In the real implementation, devices communicate via Bluetooth LE within ~100m range.
+          {isNativeSupported ? (
+            <>
+              <strong>Native Mode Active:</strong> Using real Bluetooth LE to discover nearby Android/iOS devices. 
+              Coverage range: ~100m outdoors, 10-30m indoors. Broadcasts use BLE advertising.
+            </>
+          ) : (
+            <>
+              <strong>Web Preview:</strong> Native features require building the Android/iOS app. 
+              Use <code className="text-xs bg-muted px-1 rounded">npx cap run android</code> to test on device.
+            </>
+          )}
         </div>
       </CardContent>
     </Card>
