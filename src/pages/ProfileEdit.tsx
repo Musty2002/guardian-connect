@@ -6,16 +6,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Save, X } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Camera, Save, X, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { ImageCropDialog } from "@/components/ImageCropDialog";
 import { z } from "zod";
 
 const profileSchema = z.object({
   full_name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
   phone_number: z.string().trim().max(20, "Phone number must be less than 20 characters").optional(),
   emergency_contact: z.string().trim().max(20, "Emergency contact must be less than 20 characters").optional(),
+});
+
+const passwordSchema = z.object({
+  newPassword: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 const ProfileEdit = () => {
@@ -28,8 +38,13 @@ const ProfileEdit = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [emergencyContact, setEmergencyContact] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarFile, setAvatarFile] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showCropDialog, setShowCropDialog] = useState(false);
+  const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -79,8 +94,26 @@ const ProfileEdit = () => {
       return;
     }
 
-    setAvatarFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
+    // Open crop dialog
+    setSelectedImageSrc(URL.createObjectURL(file));
+    setShowCropDialog(true);
+  };
+
+  const handleCropComplete = (croppedImage: Blob) => {
+    setAvatarFile(croppedImage);
+    setPreviewUrl(URL.createObjectURL(croppedImage));
+    setShowCropDialog(false);
+    if (selectedImageSrc) {
+      URL.revokeObjectURL(selectedImageSrc);
+    }
+  };
+
+  const handleCropCancel = () => {
+    setShowCropDialog(false);
+    if (selectedImageSrc) {
+      URL.revokeObjectURL(selectedImageSrc);
+      setSelectedImageSrc(null);
+    }
   };
 
   const uploadAvatar = async (): Promise<string | null> => {
@@ -88,8 +121,7 @@ const ProfileEdit = () => {
 
     setUploading(true);
     try {
-      const fileExt = avatarFile.name.split(".").pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${Date.now()}.jpg`;
 
       // Delete old avatar if exists
       if (avatarUrl) {
@@ -191,6 +223,60 @@ const ProfileEdit = () => {
     }
   };
 
+  const handlePasswordChange = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast({
+        title: "Missing fields",
+        description: "Please enter both password fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate passwords
+    try {
+      passwordSchema.parse({
+        newPassword,
+        confirmPassword,
+      });
+    } catch (error: any) {
+      const zodError = error as z.ZodError;
+      toast({
+        title: "Validation Error",
+        description: zodError.errors[0]?.message || "Please check your passwords",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Password updated",
+        description: "Your password has been changed successfully",
+      });
+
+      // Clear password fields
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      console.error("Password change error:", error);
+      toast({
+        title: "Password change failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   const handleCancel = () => {
     if (previewUrl && previewUrl !== avatarUrl) {
       URL.revokeObjectURL(previewUrl);
@@ -200,13 +286,20 @@ const ProfileEdit = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      <ImageCropDialog
+        open={showCropDialog}
+        imageSrc={selectedImageSrc || ""}
+        onComplete={handleCropComplete}
+        onCancel={handleCropCancel}
+      />
+      
       <MobileHeader
         title="Edit Profile"
         onMenuClick={() => {}}
         onNotificationsClick={() => {}}
       />
 
-      <main className="max-w-screen-sm mx-auto px-4 py-6">
+      <main className="max-w-screen-sm mx-auto px-4 py-6 space-y-4">
         <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
@@ -322,6 +415,55 @@ const ProfileEdit = () => {
                 {loading || uploading ? "Saving..." : "Save Changes"}
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Password Change Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              Change Password
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">New Password</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                placeholder="Enter new password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                disabled={changingPassword}
+                minLength={6}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={changingPassword}
+                minLength={6}
+              />
+            </div>
+
+            <Button
+              className="w-full"
+              onClick={handlePasswordChange}
+              disabled={changingPassword || !newPassword || !confirmPassword}
+            >
+              {changingPassword ? "Changing..." : "Change Password"}
+            </Button>
+
+            <p className="text-xs text-muted-foreground">
+              Password must be at least 6 characters long
+            </p>
           </CardContent>
         </Card>
       </main>
