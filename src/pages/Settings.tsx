@@ -71,12 +71,23 @@ const Settings = () => {
       
       <main className="max-w-screen-sm mx-auto px-4 py-6">
         {/* User Profile */}
-        <div className="mb-6 p-4 bg-card rounded-xl border border-border">
+        <button
+          onClick={() => navigate("/profile-edit")}
+          className="w-full mb-6 p-4 bg-card rounded-xl border border-border hover:border-accent transition-colors text-left"
+        >
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center">
-              <span className="text-accent-foreground font-bold text-xl">
-                {profile?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase() || "U"}
-              </span>
+            <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center overflow-hidden border-2 border-border">
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-accent-foreground font-bold text-xl">
+                  {profile?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase() || "U"}
+                </span>
+              )}
             </div>
             <div className="flex-1">
               <h2 className="font-bold text-foreground text-lg">
@@ -85,8 +96,9 @@ const Settings = () => {
               <p className="text-sm text-muted-foreground">{user?.email}</p>
               <p className="text-xs text-success mt-1">Premium Member</p>
             </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </div>
-        </div>
+        </button>
 
         {/* Device Information */}
         {deviceInfo && (

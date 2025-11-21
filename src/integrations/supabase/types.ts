@@ -428,6 +428,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string | null
           emergency_contact: string | null
           emergency_gesture_enabled: boolean | null
@@ -439,6 +440,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string | null
           emergency_contact?: string | null
           emergency_gesture_enabled?: boolean | null
@@ -450,6 +452,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string | null
           emergency_contact?: string | null
           emergency_gesture_enabled?: boolean | null
