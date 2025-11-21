@@ -4,6 +4,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { EmergencyButton } from "@/components/EmergencyButton";
 import { EmergencyConfirmDialog } from "@/components/EmergencyConfirmDialog";
 import { MeshNetworkStatus } from "@/components/MeshNetworkStatus";
+import { MeshNetworkDemo } from "@/components/MeshNetworkDemo";
 import { ThreatDetectionCard } from "@/components/ThreatDetectionCard";
 import { Phone, MessageSquare, Camera, Mic } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -236,6 +237,11 @@ const Emergency = () => {
         {/* Mesh Network Status */}
         <div className="mb-6">
           <MeshNetworkStatus />
+        </div>
+
+        {/* Mesh Network Demo - Hackathon Visualization */}
+        <div className="mb-6">
+          <MeshNetworkDemo />
         </div>
 
         {/* AI Threat Detection */}
