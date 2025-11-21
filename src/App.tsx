@@ -16,6 +16,7 @@ import ParentDashboard from "./pages/ParentDashboard";
 import ChildControls from "./pages/ChildControls";
 import SafeZones from "./pages/SafeZones";
 import Settings from "./pages/Settings";
+import ProfileEdit from "./pages/ProfileEdit";
 import DeviceSecurity from "./pages/DeviceSecurity";
 import EmergencySettings from "./pages/EmergencySettings";
 import NotFound from "./pages/NotFound";
@@ -50,6 +51,7 @@ const AppContent = () => {
         <Route path="/child-controls" element={<ProtectedRoute><ChildControls /></ProtectedRoute>} />
         <Route path="/safe-zones" element={<ProtectedRoute><SafeZones /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/profile-edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
         <Route path="/device-security" element={<ProtectedRoute><DeviceSecurity /></ProtectedRoute>} />
         <Route path="/emergency-settings" element={<ProtectedRoute><EmergencySettings /></ProtectedRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
