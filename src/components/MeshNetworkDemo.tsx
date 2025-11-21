@@ -139,13 +139,6 @@ export const MeshNetworkDemo = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Status Banner */}
-        {!isNativeSupported && (
-          <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg text-sm">
-            <strong>Web Mode:</strong> Native Bluetooth features require Android/iOS app. 
-            Build with <code className="text-xs bg-muted px-1 rounded">npx cap run android</code>
-          </div>
-        )}
-
         {isNativeSupported && !isInitialized && (
           <div className="p-3 bg-muted border rounded-lg text-sm">
             <strong>Initializing Bluetooth...</strong> Please ensure Bluetooth and Location permissions are granted.
@@ -278,17 +271,8 @@ export const MeshNetworkDemo = () => {
         )}
 
         <div className="text-xs text-muted-foreground bg-primary/5 p-3 rounded-lg border border-primary/20">
-          {isNativeSupported ? (
-            <>
-              <strong>Native Mode Active:</strong> Using real Bluetooth LE to discover nearby Android/iOS devices. 
-              Coverage range: ~100m outdoors, 10-30m indoors. Broadcasts use BLE advertising.
-            </>
-          ) : (
-            <>
-              <strong>Web Preview:</strong> Native features require building the Android/iOS app. 
-              Use <code className="text-xs bg-muted px-1 rounded">npx cap run android</code> to test on device.
-            </>
-          )}
+          <strong>Native Bluetooth Mesh:</strong> Discovering nearby devices via BLE. 
+          Coverage range: ~100m outdoors, 10-30m indoors. Emergency broadcasts propagate through discovered peers.
         </div>
       </CardContent>
     </Card>
