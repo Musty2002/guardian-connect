@@ -123,18 +123,11 @@ export const MeshNetworkDemo = () => {
     <Card className="border-2 border-primary/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          {isNativeSupported ? (
-            <Bluetooth className={`h-5 w-5 text-primary ${isScanning ? 'animate-pulse' : ''}`} />
-          ) : (
-            <Radio className="h-5 w-5 text-muted-foreground" />
-          )}
-          {isNativeSupported ? 'Native Mesh Network' : 'Mesh Network (Web Demo)'}
+          <Bluetooth className={`h-5 w-5 text-primary ${isScanning ? 'animate-pulse' : ''}`} />
+          Native Mesh Network
         </CardTitle>
         <CardDescription>
-          {isNativeSupported 
-            ? 'Real-time Bluetooth LE device discovery and emergency broadcasting'
-            : 'Native features available only on Android/iOS apps'
-          }
+          Real-time Bluetooth LE device discovery and emergency broadcasting
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
